@@ -1,5 +1,4 @@
-import matplotlib.pyplot as plt
-
+import plotly.figure_factory as ff
 
 def get_input():
     inputted = []
@@ -59,30 +58,19 @@ def coffman_graham(nodes, edges, num_machines):
     return result, cmax
 
 
-def plot_gantt_chart(task_order, num_machines, cmax):
-    fig, ax = plt.subplots()
+def plot_gantt_chart(result, num_machines, cmax):
+    df = []
 
-    machine_colors = ['tab:blue', 'tab:red', 'tab:green', 'tab:orange', 'tab:purple', 'tab:brown', 'tab:pink', 'tab:gray']
+    for task, start_time in result.items():
+        machine = start_time % num_machines + 1
+        df.append(dict(Task=f'Machine {machine}', Start=int(start_time), Finish=int(start_time) + 1, Resource=task))
 
-    for i, (task, start_time) in enumerate(task_order.items()):
-        machine = i % num_machines
-        color = machine_colors[machine]
-        ax.broken_barh([(start_time, 1)], (machine, 1), facecolors=color, edgecolor='black')
-        ax.text(start_time + 0.5, machine + 0.5, task, ha='center', va='center')
+    fig = ff.create_gantt(df, index_col='Resource', show_colorbar=False, title='Gantt chart')
+    fig.update_layout(xaxis_type='linear', xaxis_title='Time', yaxis_title='Machine Number')
 
-    ax.set_ylim(0, num_machines)
-    ax.set_xlim(0, max(task_order.values()) + 2)
-    ax.set_xlabel('Czas')
-    ax.set_ylabel('Maszyny')
+    fig.add_annotation(x=max(result.values()) / 2, y=2*num_machines + 1.2, text=f'Cmax: {cmax}', showarrow=False)
 
-    ax.annotate(f'Cmax: {cmax}', xy=(1, -0.05), xytext=(-10, -10), xycoords='axes fraction', textcoords='offset points', ha='right', va='top')
-
-    ax.set_yticks(range(num_machines))
-    ax.set_yticklabels(range(1, num_machines+1))
-    ax.set_title('Wykres Gantta')
-
-    plt.show()
-
+    fig.show()
 
 
 def main():
